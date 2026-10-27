@@ -1,5 +1,7 @@
 use std::fmt;
 
+#[cfg(feature = "serde")]
+use serde::{Serialize, Deserialize};
 /// Represents an HTTP status code with helper methods for inspection.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
