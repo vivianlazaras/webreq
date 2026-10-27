@@ -1515,6 +1515,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "thiserror",
  "wasi-http-client",
 ]
 

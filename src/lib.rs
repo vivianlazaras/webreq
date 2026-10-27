@@ -34,6 +34,7 @@
 //! ```\
 pub mod status;
 pub use status::*;
+use thiserror::Error;
 /// Common HTTP header name constants.
 pub mod header {
     pub const ACCEPT: &str = "accept";
@@ -98,23 +99,24 @@ impl std::fmt::Display for Method {
 ///
 /// `Client` automatically delegates calls to `reqwest` on native targets and 
 /// `wasi-http-client` when compiled for WebAssembly (`wasm32-wasip1`).
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum Error {
     Network(String),
     InvalidUrl(String),
-    Serialization(String),
+
+    #[cfg(feature = "serde")]
+    Serialization(#[from] serde_json::Error),
     Timeout,
     Other(String),
     Status(u16),
 }
-
-impl std::error::Error for Error {}
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::Network(msg) => write!(f, "Network error: {}", msg),
             Error::InvalidUrl(msg) => write!(f, "Invalid URL: {}", msg),
+            #[cfg(feature = "serde")]
             Error::Serialization(msg) => write!(f, "Serialization error: {}", msg),
             Error::Timeout => write!(f, "RequestBuilder timed out"),
             Error::Other(msg) => write!(f, "HTTP client error: {}", msg),
@@ -142,6 +144,12 @@ impl RequestBuilder {
             body: Vec::new(),
             client: Client::new(),
         }
+    }
+
+    #[cfg(feature = "serde")]
+    pub fn json<S: Serialize>(mut self, val: &S) -> Result<Self, Error> {
+        self.body = serde_json::to_vec(val)?;
+        Ok(self)
     }
 
     pub fn bearer_auth(mut self, token: impl Into<String>) -> Self {
