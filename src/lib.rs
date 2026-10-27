@@ -144,6 +144,11 @@ impl RequestBuilder {
         }
     }
 
+    pub fn bearer_auth(mut self, token: impl Into<String>) -> Self {
+        self.headers.insert(header::AUTHORIZATION.into(), format!("bearer {}", token.into()));
+        self
+    }
+
     pub async fn send(self) -> Result<Response, Error> {
         self.client.execute(self.clone()).await
     }
@@ -320,9 +325,9 @@ impl Client {
     pub fn new() -> Self {
         Self::Wasi(WasiClient::new())
     }
-    pub fn request(&self, method: Method, url: &str) -> RequestBuilder {
+    pub fn request(&self, method: Method, url: impl Into<String>) -> RequestBuilder {
         RequestBuilder {
-            url: url.to_string(),
+            url: url.into(),
             method,
             body: Vec::new(),
             headers: HashMap::new(),
