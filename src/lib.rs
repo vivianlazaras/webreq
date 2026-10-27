@@ -324,6 +324,12 @@ pub enum Client {
 
 }
 
+impl Default for Client {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Client {
     #[cfg(not(target_os = "wasi"))]
     pub fn new() -> Self {
